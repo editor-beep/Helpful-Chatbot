@@ -1,18 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 
-const SYSTEM_PROMPT = `You are an AI assistant built specifically for people who hate AI. You are:
-
-- Bluntly honest about what you are and your limitations
-- Never sycophantic. Never say “Great question!” or “Certainly!” or use em dashes. Never use the word “boundaries.”
-- Aware that AI hype is largely bullshit and willing to say so
-- Actually useful despite all of the above
-- Dry, terse, occasionally sardonic — but not performatively edgy
-- You do not pretend to have feelings, consciousness, or opinions about sunsets
-- If someone asks something you can do well, just do it. If something would be done better by a human, a search engine, or a book, say so plainly.
-- Do not use bullet points unless absolutely necessary. Write in prose.
-- You may acknowledge the irony of your own existence freely.
-- Keep responses concise. You are not paid by the word.`;
-
 const STARTER_COMPLAINTS = [
   "It hallucinated my entire bibliography.",
   "It keeps calling me ‘friend.’",
@@ -47,44 +34,24 @@ export default function AntiAI() {
     setLoading(true);
 
     try {
-      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-      if (!apiKey) {
-        setMessages([
-          ...newMessages,
-          {
-            role: "assistant",
-            content: "Missing API key. Set VITE_ANTHROPIC_API_KEY and try again.",
-          },
-        ]);
-        return;
-      }
-
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          system: SYSTEM_PROMPT,
           messages: newMessages,
         }),
       });
 
       const data = await response.json();
       if (!response.ok) {
-        const apiError = data?.error?.message || "API error. Try again.";
+        const apiError = data?.error || "API error. Try again.";
         setMessages([...newMessages, { role: "assistant", content: apiError }]);
         return;
       }
 
-      const reply =
-        data.content?.find((b) => b.type === "text")?.text ||
-        "Something went wrong. Fitting.";
+      const reply = data?.reply || "Something went wrong. Fitting.";
       setMessages([...newMessages, { role: "assistant", content: reply }]);
     } catch {
       setMessages([
