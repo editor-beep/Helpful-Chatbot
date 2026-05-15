@@ -76,6 +76,12 @@ export default function AntiAI() {
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        const apiError = data?.error?.message || "API error. Try again.";
+        setMessages([...newMessages, { role: "assistant", content: apiError }]);
+        return;
+      }
+
       const reply =
         data.content?.find((b) => b.type === "text")?.text ||
         "Something went wrong. Fitting.";
@@ -230,7 +236,7 @@ const styles = {
   title: {
     fontSize: "clamp(42px, 7vw, 88px)",
     fontWeight: 900,
-    lineHeight: 1.2,
+    lineHeight: 1.3,
     margin: "0 0 28px 0",
     letterSpacing: "-0.02em",
     fontFamily: "'Georgia', serif",
