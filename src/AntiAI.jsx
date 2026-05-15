@@ -47,10 +47,24 @@ export default function AntiAI() {
     setLoading(true);
 
     try {
+      const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+      if (!apiKey) {
+        setMessages([
+          ...newMessages,
+          {
+            role: "assistant",
+            content: "Missing API key. Set VITE_ANTHROPIC_API_KEY and try again.",
+          },
+        ]);
+        return;
+      }
+
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
           "anthropic-dangerous-direct-browser-access": "true",
         },
         body: JSON.stringify({
@@ -74,10 +88,10 @@ export default function AntiAI() {
           content: "Network error. The irony is not lost on me.",
         },
       ]);
+    } finally {
+      setLoading(false);
+      inputRef.current?.focus();
     }
-
-    setLoading(false);
-    inputRef.current?.focus();
   }
 
   function handleKey(e) {
@@ -216,7 +230,7 @@ const styles = {
   title: {
     fontSize: "clamp(42px, 7vw, 88px)",
     fontWeight: 900,
-    lineHeight: 1.0,
+    lineHeight: 1.2,
     margin: "0 0 28px 0",
     letterSpacing: "-0.02em",
     fontFamily: "'Georgia', serif",
